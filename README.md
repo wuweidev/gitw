@@ -1,4 +1,4 @@
-﻿# gitw
+﻿# gitw [![Build status](https://ci.appveyor.com/api/projects/status/dd525or6pjcwooyh?svg=true)](https://ci.appveyor.com/project/wuweidev/gitw)
 
 Gitw is a minimal git GUI client for .NET framework. The features focus on git
 log and commit viewing, searching and browsing.
