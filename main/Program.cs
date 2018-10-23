@@ -28,7 +28,15 @@ namespace gitw
                 fullPath += "\\";
             }
 
-            string repoRoot = Repository.Discover(fullPath);
+            // Repository.Discover doesn't work with paths that don't exist.
+            // Traverse up the tree to find an existing directory.
+            string discoverPath = fullPath;
+            while (!Directory.Exists(discoverPath))
+            {
+                discoverPath = Directory.GetParent(discoverPath).FullName;
+            }
+
+            string repoRoot = Repository.Discover(discoverPath);
             if (repoRoot == null) return;
 
             using (var repo = new Repository(repoRoot))
