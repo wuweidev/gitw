@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using LibGit2Sharp;
@@ -18,9 +19,26 @@ namespace gitw
             if (lv.SelectedIndices.Count == 0) return false;
 
             var item = lv.Items[lv.SelectedIndices[0]];
-            string.Join("\t", item.SubItems.Cast<ListViewItem.ListViewSubItem>().Select(si => si.Text).ToArray())
-                  .CopyToClipboard();
+            item.ListViewItemToString().CopyToClipboard();
+
             return true;
+        }
+
+        public static void ClipboardCopyAllItems(this ListView lv)
+        {
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < lv.Items.Count; ++i)
+            {
+                sb.AppendLine(lv.Items[i].ListViewItemToString());
+            }
+
+            sb.ToString().CopyToClipboard();
+        }
+
+        public static string ListViewItemToString(this ListViewItem item)
+        {
+            return string.Join("\t", item.SubItems.Cast<ListViewItem.ListViewSubItem>().Select(si => si.Text).ToArray());
         }
 
         public static void CopyToClipboard(this string text)

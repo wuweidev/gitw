@@ -27,6 +27,7 @@ namespace gitw
                 new ToolStripMenuItem("Diff &Entire Commit", null, ContextMenu_DiffCommit, Keys.Control | Keys.E),
                 new ToolStripMenuItem("&View Log", null, ContextMenu_ViewLog, Keys.Control | Keys.O),
                 new ToolStripMenuItem("&Copy", null, ContextMenu_Copy, Keys.Control | Keys.C),
+                new ToolStripMenuItem("Copy &All", null, ContextMenu_CopyAll, Keys.Control | Keys.Shift | Keys.C),
             };
 
             this.ContextMenuStrip.Items.Clear();
@@ -58,6 +59,11 @@ namespace gitw
         private void ContextMenu_Copy(object sender, EventArgs e)
         {
             this.ClipboardCopyItem();
+        }
+
+        private void ContextMenu_CopyAll(object sender, EventArgs e)
+        {
+            this.ClipboardCopyAllItems();
         }
 
         private void ContextMenu_DiffFile(object sender, EventArgs e)
