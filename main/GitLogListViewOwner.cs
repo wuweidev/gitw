@@ -139,12 +139,12 @@ namespace gitw
             return true;
         }
 
-        public void ShowDiff(object itemTag)
+        public void ShowDiff(object itemTag, bool forEntireCommit)
         {
             var commit = itemTag as Commit;
             if (commit == null) return;
 
-            this.gitLog.ShowDiff(commit, forEntireCommit: false);
+            this.gitLog.ShowDiff(commit, forEntireCommit: forEntireCommit);
         }
 
         public void ShowCommitContent(object itemTag)

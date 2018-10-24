@@ -102,7 +102,7 @@ namespace gitw
 
         private void ContextMenu_DiffEntireCommit(object sender, EventArgs e)
         {
-            ShowDiffForSelection();
+            ShowDiffForSelection(forEntireCommit: true);
         }
 
         private void ContextMenu_ViewCommit(object sender, EventArgs e)
@@ -160,12 +160,12 @@ namespace gitw
             }
         }
 
-        private bool ShowDiffForSelection()
+        private bool ShowDiffForSelection(bool forEntireCommit = false)
         {
             if (this.SelectedIndices.Count == 0) return false;
 
             var item = this.Items[this.SelectedIndices[0]];
-            this.owner.ShowDiff(item.Tag);
+            this.owner.ShowDiff(item.Tag, forEntireCommit);
             return true;
         }
 
