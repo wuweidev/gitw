@@ -42,6 +42,8 @@ namespace gitw
 
             this.DoubleClick += Lv_DoubleClick;
             this.KeyDown += Lv_KeyDown;
+
+            this.Disposed += Lv_Disposed;
         }
 
         public event FilteringByAuthorEventHandler FilteringByAuthor;
@@ -158,6 +160,11 @@ namespace gitw
             {
                 e.Handled = this.ClipboardCopyItem();
             }
+        }
+
+        private void Lv_Disposed(object sender, EventArgs e)
+        {
+            this.owner.CancelTask();
         }
 
         private bool ShowDiffForSelection(bool forEntireCommit = false)

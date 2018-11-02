@@ -128,6 +128,7 @@ namespace gitw
                 {
                     oldTokenSource.Cancel();
                     oldTask.Wait();
+                    oldTokenSource.Dispose();
                     oldCommits.Clear();
                     oldMatchingItems?.Clear();
 
@@ -154,6 +155,13 @@ namespace gitw
 
             var form = new GitCommitForm(this.gitLog, commit);
             Program.AppContext.NewForm(form);
+        }
+
+        public void CancelTask()
+        {
+            this.tokenSource.Cancel();
+            this.task.Wait();
+            this.tokenSource.Dispose();
         }
 
         protected override ListViewItem CreateVirtualItem(int index)

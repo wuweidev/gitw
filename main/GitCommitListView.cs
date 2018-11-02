@@ -36,6 +36,8 @@ namespace gitw
 
             this.DoubleClick += Lv_DoubleClick;
             this.KeyDown += Lv_KeyDown;
+
+            this.Disposed += Lv_Disposed;
         }
 
         public override int ActualListSize => this.owner.ListSize;
@@ -98,6 +100,11 @@ namespace gitw
             {
                 e.Handled = this.ClipboardCopyItem();
             }
+        }
+
+        private void Lv_Disposed(object sender, EventArgs e)
+        {
+            this.owner.AwaitTask();
         }
 
         private bool ShowDiffForSelection()

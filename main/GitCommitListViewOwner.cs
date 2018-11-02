@@ -16,6 +16,7 @@ namespace gitw
         private readonly List<string> headerRows;
         private readonly List<string> baseFileRows;
         private readonly List<string> nonBaseFileRows;
+        private Task task;
 
         public GitCommitListViewOwner(GitLog gitLog, Commit commit)
         {
@@ -28,7 +29,7 @@ namespace gitw
             this.baseFileRows = new List<string>();
             this.nonBaseFileRows = new List<string>();
 
-            Task.Factory.StartNew(() => GenerateCommitContent());
+            this.task = Task.Factory.StartNew(() => GenerateCommitContent());
         }
 
         public override int ListSize => this.headerRows.Count + this.baseFileRows.Count + this.nonBaseFileRows.Count;
@@ -72,6 +73,11 @@ namespace gitw
             var form = new GitLogForm(this.gitLog.Repo, fullPath);
             Program.AppContext.NewForm(form);
             return true;
+        }
+
+        public void AwaitTask()
+        {
+            this.task.Wait();
         }
 
         protected override ListViewItem CreateVirtualItem(int index)
