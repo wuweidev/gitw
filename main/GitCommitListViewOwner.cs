@@ -138,7 +138,7 @@ namespace gitw
                         this.baseFileRows.Add(string.Empty);
                     }
                     this.baseFileRelPaths.Add(pe.Path);
-                    this.baseFileRows.Add($"{pe.Path} ({pe.Status})");
+                    this.baseFileRows.Add(GetFileRowString(pe));
                 }
                 else
                 {
@@ -148,8 +148,20 @@ namespace gitw
                         this.nonBaseFileRows.Add(string.Empty);
                     }
                     this.nonBaseFileRelPaths.Add(pe.Path);
-                    this.nonBaseFileRows.Add($"{pe.Path} ({pe.Status})");
+                    this.nonBaseFileRows.Add(GetFileRowString(pe));
                 }
+            }
+        }
+
+        private string GetFileRowString(PatchEntryChanges pe)
+        {
+            if (pe.Status == ChangeKind.Renamed || pe.Status == ChangeKind.Copied)
+            {
+                return $"{pe.OldPath} ⇒ {pe.Path} ({pe.Status})";
+            }
+            else
+            {
+                return $"{pe.Path} ({pe.Status})";
             }
         }
     }
