@@ -23,7 +23,7 @@ namespace gitw
             string path = args.Length > 0 ? args[0] : null;
             string fullPath = path == null ? Environment.CurrentDirectory : Path.GetFullPath(path);
 
-            if (Directory.Exists(fullPath))
+            if (Directory.Exists(fullPath) && !fullPath.EndsWith("\\"))
             {
                 fullPath += "\\";
             }
