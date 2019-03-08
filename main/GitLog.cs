@@ -183,7 +183,7 @@ namespace gitw
 
             if (this.targetPath.Length == 0)
             {
-                return this.currentBranch.Commits.Take(count);
+                return this.currentBranch.Commits.Where(c => CommitHasOneParent(c)).Take(count);
             }
             else
             {
@@ -197,8 +197,13 @@ namespace gitw
                     //FirstParentOnly = true,
                 };
 
-                return this.currentBranch.Commits.Where(c => CommitTouchedPath(c, segments)).Take(count);
+                return this.currentBranch.Commits.Where(c => CommitHasOneParent(c) && CommitTouchedPath(c, segments)).Take(count);
             }
+        }
+
+        private bool CommitHasOneParent(Commit commit)
+        {
+            return !commit.Parents.Skip(1).Any();
         }
 
         private bool CommitTouchedPath(Commit commit, string[] segments)
