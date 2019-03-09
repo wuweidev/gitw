@@ -87,7 +87,12 @@ namespace gitw
             return true;
         }
 
-        public void ShowDiff(Commit commit, string fileRelPath = null, bool forEntireCommit = false)
+        public void ShowDiffWithHead(Commit commit)
+        {
+            ShowDiff(commit, vsHead: true);
+        }
+
+        public void ShowDiff(Commit commit, string fileRelPath = null, bool forEntireCommit = false, bool vsHead = false)
         {
             string root = Path.Combine(Path.GetTempPath(), "gitw", Path.GetRandomFileName().Substring(0, 4));
             string proot = Path.Combine(root, "a");
@@ -105,7 +110,7 @@ namespace gitw
                 fileRelPath = this.targetPath;
             }
 
-            var patch = GetCommitPatch(commit);
+            var patch = GetCommitPatch(commit, vsHead);
             if (string.IsNullOrEmpty(fileRelPath) || fileRelPath.EndsWith("\\", StringComparison.Ordinal))
             {
                 foreach (var pe in patch)
@@ -132,9 +137,10 @@ namespace gitw
             StartDiffCmd(proot, croot, root);
         }
 
-        public Patch GetCommitPatch(Commit commit)
+        public Patch GetCommitPatch(Commit commit, bool vsHead = false)
         {
-            var parent = commit.Parents.FirstOrDefault();
+            var parent = vsHead ? commit : commit.Parents.FirstOrDefault();
+            commit = vsHead ? this.repo.Head.Tip : commit;
             var patch = this.repo.Diff.Compare<Patch>(parent?.Tree, commit.Tree);
             return patch;
         }

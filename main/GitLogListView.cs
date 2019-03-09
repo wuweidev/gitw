@@ -27,6 +27,7 @@ namespace gitw
             this.contextMenuItems = new ToolStripMenuItem[]
             {
                 new ToolStripMenuItem("&Diff File", null, ContextMenu_DiffCommit, Keys.Control | Keys.D),
+                new ToolStripMenuItem("Diff with &Head", null, ContextMenu_DiffCommitWithHead, Keys.Control | Keys.H),
                 new ToolStripMenuItem("Diff &Entire Commit", null, ContextMenu_DiffEntireCommit, Keys.Control | Keys.E),
                 new ToolStripMenuItem("&Diff Commit", null, ContextMenu_DiffCommit, Keys.Control | Keys.D),
                 new ToolStripMenuItem("&View Commit", null, ContextMenu_ViewCommit, Keys.Control | Keys.O),
@@ -85,11 +86,12 @@ namespace gitw
             }
 
             this.contextMenuItems[0].Enabled =
-            this.contextMenuItems[1].Enabled = !this.owner.TargetIsDirectory;
-            this.contextMenuItems[2].Enabled = this.owner.TargetIsDirectory;
-            this.contextMenuItems[3].Enabled =
+            this.contextMenuItems[1].Enabled =
+            this.contextMenuItems[2].Enabled = !this.owner.TargetIsDirectory;
+            this.contextMenuItems[3].Enabled = this.owner.TargetIsDirectory;
             this.contextMenuItems[4].Enabled =
-            this.contextMenuItems[5].Enabled = true;
+            this.contextMenuItems[5].Enabled =
+            this.contextMenuItems[6].Enabled = true;
 
             foreach (var item in this.contextMenuItems)
             {
@@ -105,6 +107,11 @@ namespace gitw
         private void ContextMenu_DiffEntireCommit(object sender, EventArgs e)
         {
             ShowDiffForSelection(forEntireCommit: true);
+        }
+
+        private void ContextMenu_DiffCommitWithHead(object sender, EventArgs e)
+        {
+            ShowDiffWithHead();
         }
 
         private void ContextMenu_ViewCommit(object sender, EventArgs e)
@@ -173,6 +180,15 @@ namespace gitw
 
             var item = this.Items[this.SelectedIndices[0]];
             this.owner.ShowDiff(item.Tag, forEntireCommit);
+            return true;
+        }
+
+        private bool ShowDiffWithHead()
+        {
+            if (this.SelectedIndices.Count == 0) return false;
+
+            var item = this.Items[this.SelectedIndices[0]];
+            this.owner.ShowDiffWithHead(item.Tag);
             return true;
         }
 

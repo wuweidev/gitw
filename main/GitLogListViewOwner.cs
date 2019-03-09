@@ -148,6 +148,14 @@ namespace gitw
             this.gitLog.ShowDiff(commit, forEntireCommit: forEntireCommit);
         }
 
+        public void ShowDiffWithHead(object itemTag)
+        {
+            var commit = itemTag as Commit;
+            if (commit == null) return;
+
+            this.gitLog.ShowDiffWithHead(commit);
+        }
+
         public void ShowCommitContent(object itemTag)
         {
             var commit = itemTag as Commit;
