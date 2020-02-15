@@ -76,6 +76,8 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FilteringByAuthorEventHandler.cs" />
+    <Compile Include="FilteringFromDateEventHandler.cs" />
+    <Compile Include="FilteringToDateEventHandler.cs" />
     <Compile Include="GitCommitForm.cs">
       <SubType>Form</SubType>
     </Compile>

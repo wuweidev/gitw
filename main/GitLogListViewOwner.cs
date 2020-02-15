@@ -15,6 +15,8 @@ namespace gitw
         private IList<ListViewItem> matchingItems;  // Filtered commits are uncached, so keep ListViewItem directly.
         private string filterText;
         private Signature filterAuthor;
+        private DateTimeOffset? filterFromDate;
+        private DateTimeOffset? filterToDate;
         private CancellationTokenSource tokenSource;
         private Task task;
 
@@ -36,7 +38,9 @@ namespace gitw
         {
             if (text == this.filterText) return false;
 
-            if (string.IsNullOrEmpty(text) && this.filterAuthor == null)
+            this.filterText = text;
+
+            if (FilterIsEmpty())
             {
                 var items = this.matchingItems;
                 this.matchingItems = null;
@@ -44,8 +48,6 @@ namespace gitw
                 items?.Clear();
 
                 this.EnableCache = true;
-
-                this.filterText = string.Empty;
             }
             else
             {
@@ -54,12 +56,10 @@ namespace gitw
                 //TODO: cancel old task?
                 Task.Factory.StartNew(() =>
                 {
-                    this.commits.FilterToListViewItems(text, this.filterAuthor, this.matchingItems);
+                    this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
                 });
 
                 this.EnableCache = false;
-
-                this.filterText = text;
             }
 
             return true;
@@ -80,16 +80,70 @@ namespace gitw
                 return false;
             }
 
+            this.filterAuthor = author;
+
             this.matchingItems = new List<ListViewItem>();
 
             Task.Factory.StartNew(() =>
             {
-                this.commits.FilterToListViewItems(this.filterText, author, this.matchingItems);
+                this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
             });
 
             this.EnableCache = false;
 
-            this.filterAuthor = author;
+            return true;
+        }
+
+        public bool FilterFromDate(object itemTag, out DateTimeOffset? fromDate)
+        {
+            fromDate = null;
+            var commit = itemTag as Commit;
+            if (commit == null) return false;
+
+            fromDate = commit.Author.When;
+
+            if (this.filterFromDate.HasValue && this.filterFromDate.Value == fromDate)
+            {
+                return false;
+            }
+
+            this.filterFromDate = fromDate;
+
+            this.matchingItems = new List<ListViewItem>();
+
+            Task.Factory.StartNew(() =>
+            {
+                this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
+            });
+
+            this.EnableCache = false;
+
+            return true;
+        }
+
+        public bool FilterToDate(object itemTag, out DateTimeOffset? toDate)
+        {
+            toDate = null;
+            var commit = itemTag as Commit;
+            if (commit == null) return false;
+
+            toDate = commit.Author.When;
+
+            if (this.filterToDate.HasValue && this.filterToDate.Value == toDate)
+            {
+                return false;
+            }
+
+            this.filterToDate = toDate;
+
+            this.matchingItems = new List<ListViewItem>();
+
+            Task.Factory.StartNew(() =>
+            {
+                this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
+            });
+
+            this.EnableCache = false;
 
             return true;
         }
@@ -107,6 +161,8 @@ namespace gitw
 
             this.filterText = string.Empty;
             this.filterAuthor = null;
+            this.filterFromDate = null;
+            this.filterToDate = null;
 
             return true;
         }
@@ -121,7 +177,7 @@ namespace gitw
             var oldMatchingItems = this.matchingItems;
 
             this.commits = new List<Commit>();
-            this.matchingItems = string.IsNullOrEmpty(this.filterText) && this.filterAuthor == null ?  null : new List<ListViewItem>();
+            this.matchingItems = FilterIsEmpty() ?  null : new List<ListViewItem>();
             this.tokenSource = new CancellationTokenSource();
             this.task = Task.Factory.StartNew(
                 () =>
@@ -133,7 +189,7 @@ namespace gitw
                     oldMatchingItems?.Clear();
 
                     this.gitLog.Commits.AddToList(this.commits, this.tokenSource.Token);
-                    this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.matchingItems);
+                    this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
                 },
                 this.tokenSource.Token);
 
@@ -186,6 +242,11 @@ namespace gitw
                     this.matchingItems[index] :
                     null;
             }
+        }
+
+        private bool FilterIsEmpty()
+        {
+            return string.IsNullOrEmpty(this.filterText) && this.filterAuthor == null && !this.filterFromDate.HasValue && !this.filterToDate.HasValue;
         }
     }
 }

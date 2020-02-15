@@ -126,7 +126,13 @@ namespace gitw
             return commit.ToListViewItem(commit.ToListViewStrings());
         }
 
-        public static void FilterToListViewItems(this IEnumerable<Commit> commits, string text, Signature author, IList<ListViewItem> items)
+        public static void FilterToListViewItems(
+            this IEnumerable<Commit> commits,
+            string text,
+            Signature author,
+            DateTimeOffset? fromDate,
+            DateTimeOffset? toDate,
+            IList<ListViewItem> items)
         {
             if (items == null) return;
 
@@ -135,7 +141,9 @@ namespace gitw
                 var subItems = c.ToListViewStrings();
 
                 if ((string.IsNullOrEmpty(text) || subItems.Any(s => s.ContainsIgnoreCase(text))) &&
-                    (author == null || c.Author.Email == author.Email))
+                    (author == null || c.Author.Email == author.Email) &&
+                    (!fromDate.HasValue || fromDate.Value <= c.Author.When) &&
+                    (!toDate.HasValue || c.Author.When <= toDate.Value))
                 {
                     items.Add(c.ToListViewItem(subItems));
                 }

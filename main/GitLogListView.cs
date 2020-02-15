@@ -34,6 +34,8 @@ namespace gitw
                 new ToolStripMenuItem("&Copy", null, ContextMenu_Copy, Keys.Control | Keys.C),
                 new ToolStripMenuItem("Copy Commit &ID", null, ContextMenu_CopyID, Keys.None),
                 new ToolStripMenuItem("Filter by &Author", null, ContextMenu_FilterByAuthor, Keys.None),
+                new ToolStripMenuItem("Filter &from Date", null, ContextMenu_FilterFromDate, Keys.None),
+                new ToolStripMenuItem("Filter &to Date", null, ContextMenu_FilterToDate, Keys.None),
                 new ToolStripMenuItem("AutoFit Column &Width", null, ContextMenu_AutoFitColumnWidth, Keys.None),
             };
 
@@ -48,6 +50,8 @@ namespace gitw
         }
 
         public event FilteringByAuthorEventHandler FilteringByAuthor;
+        public event FilteringFromDateEventHandler FilteringFromDate;
+        public event FilteringToDateEventHandler FilteringToDate;
 
         public override int ActualListSize => this.owner.ListSize;
 
@@ -66,6 +70,8 @@ namespace gitw
                 RefreshItems(true);
 
                 this.FilteringByAuthor?.Invoke(this, new FilteringByAuthorEventArgs(string.Empty));
+                this.FilteringFromDate?.Invoke(this, new FilteringFromDateEventArgs(null));
+                this.FilteringToDate?.Invoke(this, new FilteringToDateEventArgs(null));
             }
         }
 
@@ -147,6 +153,32 @@ namespace gitw
                 RefreshItems(true);
 
                 this.FilteringByAuthor?.Invoke(this, new FilteringByAuthorEventArgs(authorName));
+            }
+        }
+
+        private void ContextMenu_FilterFromDate(object sender, EventArgs e)
+        {
+            if (this.SelectedIndices.Count == 0) return;
+
+            var item = this.Items[this.SelectedIndices[0]];
+            if (this.owner.FilterFromDate(item.Tag, out DateTimeOffset? fromDate))
+            {
+                RefreshItems(true);
+
+                this.FilteringFromDate?.Invoke(this, new FilteringFromDateEventArgs(fromDate));
+            }
+        }
+
+        private void ContextMenu_FilterToDate(object sender, EventArgs e)
+        {
+            if (this.SelectedIndices.Count == 0) return;
+
+            var item = this.Items[this.SelectedIndices[0]];
+            if (this.owner.FilterToDate(item.Tag, out DateTimeOffset? toDate))
+            {
+                RefreshItems(true);
+
+                this.FilteringToDate?.Invoke(this, new FilteringToDateEventArgs(toDate));
             }
         }
 

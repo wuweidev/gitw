@@ -12,6 +12,8 @@ namespace gitw
         private ToolStripStatusLabel commitCountLabel;
         private ToolStripTextBox searchBox;
         private ToolStripStatusLabel authorLabel;
+        private ToolStripStatusLabel fromDateLabel;
+        private ToolStripStatusLabel toDateLabel;
         private ToolStripStatusLabel fillerLabel;
         private ToolStripComboBox branchComboBox;
         private Timer searchBoxTimer;
@@ -31,6 +33,8 @@ namespace gitw
             this.commitCountLabel = new ToolStripStatusLabel();
             this.searchBox = new ToolStripTextBox();
             this.authorLabel = new ToolStripStatusLabel();
+            this.fromDateLabel = new ToolStripStatusLabel();
+            this.toDateLabel = new ToolStripStatusLabel();
             this.fillerLabel = new ToolStripStatusLabel();
             this.branchComboBox = new ToolStripComboBox();
 
@@ -46,10 +50,14 @@ namespace gitw
             this.listView.Dock = DockStyle.Fill;
             this.listView.ListSizeChanged += ListView_ListSizeChanged;
             this.listView.FilteringByAuthor += ListView_FilteringByAuthor;
+            this.listView.FilteringFromDate += ListView_FilteringFromDate;
+            this.listView.FilteringToDate += ListView_FilteringToDate;
 
             this.statusStrip.Items.Add(this.commitCountLabel);
             this.statusStrip.Items.Add(this.searchBox);
             this.statusStrip.Items.Add(this.authorLabel);
+            this.statusStrip.Items.Add(this.fromDateLabel);
+            this.statusStrip.Items.Add(this.toDateLabel);
             this.statusStrip.Items.Add(this.fillerLabel);
             this.statusStrip.Items.Add(this.branchComboBox);
             this.statusStrip.TabStop = true;
@@ -61,6 +69,8 @@ namespace gitw
             this.commitCountLabel.BorderStyle = Border3DStyle.Etched;
 
             this.authorLabel.Size = new Size(180, 16);
+            this.fromDateLabel.Size = new Size(150, 16);
+            this.toDateLabel.Size = new Size(150, 16);
 
             this.fillerLabel.Spring = true;
 
@@ -135,6 +145,16 @@ namespace gitw
         private void ListView_FilteringByAuthor(object sender, FilteringByAuthorEventArgs e)
         {
             this.authorLabel.Text = string.IsNullOrEmpty(e.AuthorName) ? string.Empty : $"Author: {e.AuthorName}";
+        }
+
+        private void ListView_FilteringFromDate(object sender, FilteringFromDateEventArgs e)
+        {
+            this.fromDateLabel.Text = e.FromDate.HasValue ? $"From: {e.FromDate.Value.ToLocalTimeString()}" : string.Empty;
+        }
+
+        private void ListView_FilteringToDate(object sender, FilteringToDateEventArgs e)
+        {
+            this.toDateLabel.Text = e.ToDate.HasValue ? $"To: {e.ToDate.Value.ToLocalTimeString()}" : string.Empty;
         }
 
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)
