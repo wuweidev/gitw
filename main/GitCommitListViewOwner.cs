@@ -9,6 +9,9 @@ namespace gitw
 {
     public class GitCommitListViewOwner : CacheListViewOwner
     {
+        public override event EventHandler TaskBegin;
+        public override event EventHandler TaskEnd;
+
         private GitLog gitLog;
         private readonly Commit commit;
         private readonly List<string> baseFileRelPaths;
@@ -28,11 +31,19 @@ namespace gitw
             this.headerRows = new List<string>();
             this.baseFileRows = new List<string>();
             this.nonBaseFileRows = new List<string>();
-
-            this.task = Task.Factory.StartNew(() => GenerateCommitContent());
         }
 
         public override int ListSize => this.headerRows.Count + this.baseFileRows.Count + this.nonBaseFileRows.Count;
+
+        public override void InitializeTask()
+        {
+            this.task = Task.Factory.StartNew(() =>
+            {
+                this.TaskBegin.Invoke(this, null);
+                GenerateCommitContent();
+                this.TaskEnd.Invoke(this, null);
+            });
+        }
 
         public bool ShowDiffForSelection(int selectedIndex)
         {

@@ -132,12 +132,15 @@ namespace gitw
             Signature author,
             DateTimeOffset? fromDate,
             DateTimeOffset? toDate,
-            IList<ListViewItem> items)
+            IList<ListViewItem> items,
+            CancellationToken token)
         {
             if (items == null) return;
 
             foreach (var c in commits)
             {
+                if (token.IsCancellationRequested) return;
+
                 var subItems = c.ToListViewStrings();
 
                 if ((string.IsNullOrEmpty(text) || subItems.Any(s => s.ContainsIgnoreCase(text))) &&
@@ -148,7 +151,6 @@ namespace gitw
                     items.Add(c.ToListViewItem(subItems));
                 }
             }
-
         }
 
         #endregion

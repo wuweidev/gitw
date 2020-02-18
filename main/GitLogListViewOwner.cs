@@ -9,9 +9,12 @@ namespace gitw
 {
     public class GitLogListViewOwner : CacheListViewOwner
     {
+        public override event EventHandler TaskBegin;
+        public override event EventHandler TaskEnd;
+
         private GitLog gitLog;
-        private IList<Commit> commits;              // ListViewItem for commits are cached by CachedListView; no need to keep ListViewItem here.
-                                                    // Also need original commit for filtering.
+        private IList<Commit> commits;  // ListViewItem for commits are cached by CachedListView; no need to keep ListViewItem here.
+                                        // Also need original commit for filtering.
         private IList<ListViewItem> matchingItems;  // Filtered commits are uncached, so keep ListViewItem directly.
         private string filterText;
         private Signature filterAuthor;
@@ -24,15 +27,24 @@ namespace gitw
         {
             this.gitLog = gitLog ?? throw new ArgumentNullException(nameof(gitLog));
             this.commits = new List<Commit>();
-            this.tokenSource = new CancellationTokenSource();
-            this.task = Task.Factory.StartNew(
-                () => gitLog.Commits.AddToList(this.commits, this.tokenSource.Token),
-                this.tokenSource.Token);
         }
 
         public override int ListSize => this.matchingItems == null ? this.commits.Count : this.matchingItems.Count;
 
         public bool TargetIsDirectory => this.gitLog.TargetIsDirectory;
+
+        public override void InitializeTask()
+        {
+            this.tokenSource = new CancellationTokenSource();
+            this.task = Task.Factory.StartNew(
+                () =>
+                {
+                    this.TaskBegin.Invoke(this, null);
+                    this.gitLog.Commits.AddToList(this.commits, this.tokenSource.Token);
+                    this.TaskEnd.Invoke(this, null);
+                },
+                this.tokenSource.Token);
+        }
 
         public bool FilterByText(string text)
         {
@@ -51,13 +63,7 @@ namespace gitw
             }
             else
             {
-                this.matchingItems = new List<ListViewItem>();
-
-                //TODO: cancel old task?
-                Task.Factory.StartNew(() =>
-                {
-                    this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
-                });
+                CancelAndStartNewFilteringTask(false);
 
                 this.EnableCache = false;
             }
@@ -82,12 +88,7 @@ namespace gitw
 
             this.filterAuthor = author;
 
-            this.matchingItems = new List<ListViewItem>();
-
-            Task.Factory.StartNew(() =>
-            {
-                this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
-            });
+            CancelAndStartNewFilteringTask(false);
 
             this.EnableCache = false;
 
@@ -109,12 +110,7 @@ namespace gitw
 
             this.filterFromDate = fromDate;
 
-            this.matchingItems = new List<ListViewItem>();
-
-            Task.Factory.StartNew(() =>
-            {
-                this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
-            });
+            CancelAndStartNewFilteringTask(false);
 
             this.EnableCache = false;
 
@@ -136,12 +132,7 @@ namespace gitw
 
             this.filterToDate = toDate;
 
-            this.matchingItems = new List<ListViewItem>();
-
-            Task.Factory.StartNew(() =>
-            {
-                this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
-            });
+            CancelAndStartNewFilteringTask(false);
 
             this.EnableCache = false;
 
@@ -171,27 +162,7 @@ namespace gitw
         {
             if (!this.gitLog.SelectBranch(branchName)) return false;
 
-            var oldTask = this.task;
-            var oldTokenSource = this.tokenSource;
-            var oldCommits = this.commits;
-            var oldMatchingItems = this.matchingItems;
-
-            this.commits = new List<Commit>();
-            this.matchingItems = FilterIsEmpty() ?  null : new List<ListViewItem>();
-            this.tokenSource = new CancellationTokenSource();
-            this.task = Task.Factory.StartNew(
-                () =>
-                {
-                    oldTokenSource.Cancel();
-                    oldTask.Wait();
-                    oldTokenSource.Dispose();
-                    oldCommits.Clear();
-                    oldMatchingItems?.Clear();
-
-                    this.gitLog.Commits.AddToList(this.commits, this.tokenSource.Token);
-                    this.commits.FilterToListViewItems(this.filterText, this.filterAuthor, this.filterFromDate, this.filterToDate, this.matchingItems);
-                },
-                this.tokenSource.Token);
+            CancelAndStartNewFilteringTask(true);
 
             return true;
         }
@@ -247,6 +218,48 @@ namespace gitw
         private bool FilterIsEmpty()
         {
             return string.IsNullOrEmpty(this.filterText) && this.filterAuthor == null && !this.filterFromDate.HasValue && !this.filterToDate.HasValue;
+        }
+
+        private void CancelAndStartNewFilteringTask(bool enumerating)
+        {
+            var oldTask = this.task;
+            var oldTokenSource = this.tokenSource;
+            var oldCommits = this.commits;
+            var oldMatchingItems = this.matchingItems;
+
+            if (enumerating)
+            {
+                this.commits = new List<Commit>();
+            }
+            this.matchingItems = FilterIsEmpty() ? null : new List<ListViewItem>();
+            this.tokenSource = new CancellationTokenSource();
+            this.task = Task.Factory.StartNew(
+                () =>
+                {
+                    oldTokenSource.Cancel();
+                    oldTask.Wait();
+                    oldTokenSource.Dispose();
+                    if (enumerating)
+                    {
+                        oldCommits?.Clear();
+                    }
+                    oldMatchingItems?.Clear();
+
+                    this.TaskBegin.Invoke(this, null);
+                    if (enumerating)
+                    {
+                        this.gitLog.Commits.AddToList(this.commits, this.tokenSource.Token);
+                    }
+                    this.commits.FilterToListViewItems(
+                        this.filterText,
+                        this.filterAuthor,
+                        this.filterFromDate,
+                        this.filterToDate,
+                        this.matchingItems,
+                        this.tokenSource.Token);
+                    this.TaskEnd.Invoke(this, null);
+                },
+                this.tokenSource.Token);
         }
     }
 }

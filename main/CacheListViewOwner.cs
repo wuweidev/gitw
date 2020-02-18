@@ -16,7 +16,12 @@ namespace gitw
 
         public abstract int ListSize { get; }
 
+        public abstract event EventHandler TaskBegin;
+        public abstract event EventHandler TaskEnd;
+
         protected virtual bool EnableCache { get; set; }
+
+        public abstract void InitializeTask();
 
         public virtual void Lv_CacheVirtualItems(object sender, CacheVirtualItemsEventArgs e)
         {

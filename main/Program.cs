@@ -8,6 +8,7 @@ namespace gitw
     public static class Program
     {
         public static GitApplicationContext AppContext;
+        public static WindowsFormsSynchronizationContext SyncContext;
 
         /// <summary>
         /// The main entry point for the application.
@@ -19,6 +20,7 @@ namespace gitw
             Application.SetCompatibleTextRenderingDefault(false);
 
             AppContext = new GitApplicationContext();
+            SyncContext = new WindowsFormsSynchronizationContext();
 
             string path = args.Length > 0 ? args[0] : null;
             string fullPath = path == null ? Environment.CurrentDirectory : Path.GetFullPath(path);

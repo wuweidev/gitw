@@ -32,8 +32,12 @@ namespace gitw
 
             this.updateTimer = new Timer();
             this.updateTimer.Tick += UpdateTimer_Tick;
-            this.updateTimer.Interval = Constants.ListViewTimerFirstInterval;
-            this.updateTimer.Start();
+            this.updateTimer.Interval = Constants.ListViewTimerInterval;
+
+            // These are invoked from non-UI thread, hence the use of Post.
+            owner.TaskBegin += (sender, e) => Program.SyncContext.Post(UpdateTimer_Start, null);
+            owner.TaskEnd += (sender, e) => Program.SyncContext.Post(UpdateTimer_Stop, null);
+            owner.InitializeTask();
         }
 
         public event EventHandler ListSizeChanged;
@@ -82,10 +86,20 @@ namespace gitw
             }
         }
 
+        private void UpdateTimer_Start(object state)
+        {
+            UpdateTimer_Tick(this, null);
+            this.updateTimer.Start();
+        }
+
+        private void UpdateTimer_Stop(object state)
+        {
+            this.updateTimer.Stop();
+            UpdateTimer_Tick(this, null);
+        }
+
         private void UpdateTimer_Tick(object sender, EventArgs e)
         {
-            this.updateTimer.Interval = Constants.ListViewTimerNormalInterval;
-
             RefreshItems(false);
         }
 
