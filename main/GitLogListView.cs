@@ -37,6 +37,7 @@ namespace gitw
                 new ToolStripMenuItem("Filter &from Date", null, ContextMenu_FilterFromDate, Keys.None),
                 new ToolStripMenuItem("Filter &to Date", null, ContextMenu_FilterToDate, Keys.None),
                 new ToolStripMenuItem("AutoFit Column &Width", null, ContextMenu_AutoFitColumnWidth, Keys.None),
+                new ToolStripMenuItem("Cancel Filter by Author", null, ContextMenu_CancelFilterByAuthor, Keys.Control | Keys.Shift | Keys.U),
             };
 
             this.ContextMenuStrip.Items.Clear();
@@ -107,12 +108,19 @@ namespace gitw
             this.contextMenuItems[3].Enabled = this.owner.TargetIsDirectory;
             this.contextMenuItems[4].Enabled =
             this.contextMenuItems[5].Enabled =
-            this.contextMenuItems[6].Enabled = true;
+            this.contextMenuItems[6].Enabled =
+            this.contextMenuItems[7].Enabled =
+            this.contextMenuItems[8].Enabled =
+            this.contextMenuItems[9].Enabled =
+            this.contextMenuItems[10].Enabled =
+            this.contextMenuItems[11].Enabled = true;
 
             foreach (var item in this.contextMenuItems)
             {
                 item.Visible = item.Enabled;
             }
+            // Hide cancel filter menu items
+            this.contextMenuItems[11].Visible = false;
         }
 
         private void ContextMenu_DiffCommit(object sender, EventArgs e)
@@ -190,6 +198,11 @@ namespace gitw
 
                 this.FilteringToDate?.Invoke(this, new FilteringToDateEventArgs(toDate));
             }
+        }
+
+        private void ContextMenu_CancelFilterByAuthor(object sender, EventArgs e)
+        {
+            CancelFilterByAuthor();
         }
 
         private void Lv_DoubleClick(object sender, EventArgs e)

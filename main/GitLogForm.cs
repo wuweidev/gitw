@@ -70,7 +70,7 @@ namespace gitw
             this.commitCountLabel.BorderStyle = Border3DStyle.Etched;
 
             this.authorLabel.Size = new Size(180, 16);
-            this.authorLabel.ToolTipText = Constants.FilterLabelToolTipText;
+            this.authorLabel.ToolTipText = Constants.AuthorLabelToolTipText;
             this.authorLabel.AutoToolTip = true;
             this.authorLabel.Click += AuthorLabel_Click;
 

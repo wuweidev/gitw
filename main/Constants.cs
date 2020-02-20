@@ -6,7 +6,7 @@
 
         public const int SearchBoxMaxLength = 200;
         public const string SearchBoxCueText = "Ctrl+I to search";
-        public const string FilterLabelToolTipText = "Click to clear";
+        public const string AuthorLabelToolTipText = "Click to clear (Ctrl+Shift+U)";
         public const int SearchBoxTimerInterval = 500;
 
         public const string ListViewFontName = "Segoe UI";
