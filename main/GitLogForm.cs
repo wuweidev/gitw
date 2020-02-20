@@ -61,6 +61,7 @@ namespace gitw
             this.statusStrip.Items.Add(this.fillerLabel);
             this.statusStrip.Items.Add(this.branchComboBox);
             this.statusStrip.TabStop = true;
+            this.statusStrip.ShowItemToolTips = true;
 
             this.commitCountLabel.AutoSize = false;
             this.commitCountLabel.Size = new Size(150, 20);
@@ -69,6 +70,10 @@ namespace gitw
             this.commitCountLabel.BorderStyle = Border3DStyle.Etched;
 
             this.authorLabel.Size = new Size(180, 16);
+            this.authorLabel.ToolTipText = Constants.FilterLabelToolTipText;
+            this.authorLabel.AutoToolTip = true;
+            this.authorLabel.Click += AuthorLabel_Click;
+
             this.fromDateLabel.Size = new Size(150, 16);
             this.toDateLabel.Size = new Size(150, 16);
 
@@ -155,6 +160,11 @@ namespace gitw
         private void ListView_FilteringToDate(object sender, FilteringToDateEventArgs e)
         {
             this.toDateLabel.Text = e.ToDate.HasValue ? $"To: {e.ToDate.Value.ToLocalTimeString()}" : string.Empty;
+        }
+
+        private void AuthorLabel_Click(object sender, EventArgs e)
+        {
+            this.listView.CancelFilterByAuthor();
         }
 
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)

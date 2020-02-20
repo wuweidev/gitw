@@ -63,6 +63,16 @@ namespace gitw
             }
         }
 
+        public void CancelFilterByAuthor()
+        {
+            if (this.owner.CancelFilterByAuthor())
+            {
+                RefreshItems(true);
+
+                this.FilteringByAuthor?.Invoke(this, new FilteringByAuthorEventArgs(null));
+            }
+        }
+
         public void ClearFiltering()
         {
             if (this.owner.ClearFiltering())

@@ -52,21 +52,7 @@ namespace gitw
 
             this.filterText = text;
 
-            if (FilterIsEmpty())
-            {
-                var items = this.matchingItems;
-                this.matchingItems = null;
-
-                items?.Clear();
-
-                this.EnableCache = true;
-            }
-            else
-            {
-                CancelAndStartNewFilteringTask(false);
-
-                this.EnableCache = false;
-            }
+            ResetFiltering();
 
             return true;
         }
@@ -88,9 +74,7 @@ namespace gitw
 
             this.filterAuthor = author;
 
-            CancelAndStartNewFilteringTask(false);
-
-            this.EnableCache = false;
+            ResetFiltering();
 
             return true;
         }
@@ -110,9 +94,7 @@ namespace gitw
 
             this.filterFromDate = fromDate;
 
-            CancelAndStartNewFilteringTask(false);
-
-            this.EnableCache = false;
+            ResetFiltering();
 
             return true;
         }
@@ -132,9 +114,18 @@ namespace gitw
 
             this.filterToDate = toDate;
 
-            CancelAndStartNewFilteringTask(false);
+            ResetFiltering();
 
-            this.EnableCache = false;
+            return true;
+        }
+
+        public bool CancelFilterByAuthor()
+        {
+            if (this.filterAuthor == null) return false;
+
+            this.filterAuthor = null;
+
+            ResetFiltering();
 
             return true;
         }
@@ -143,17 +134,12 @@ namespace gitw
         {
             if (this.matchingItems == null) return false;
 
-            var items = this.matchingItems;
-            this.matchingItems = null;
-
-            items?.Clear();
-
-            this.EnableCache = true;
-
             this.filterText = string.Empty;
             this.filterAuthor = null;
             this.filterFromDate = null;
             this.filterToDate = null;
+
+            ResetFiltering();
 
             return true;
         }
@@ -212,6 +198,25 @@ namespace gitw
                 return 0 <= index && index < this.matchingItems.Count ?
                     this.matchingItems[index] :
                     null;
+            }
+        }
+
+        private void ResetFiltering()
+        {
+            if (FilterIsEmpty())
+            {
+                var items = this.matchingItems;
+                this.matchingItems = null;
+
+                items?.Clear();
+
+                this.EnableCache = true;
+            }
+            else
+            {
+                CancelAndStartNewFilteringTask(false);
+
+                this.EnableCache = false;
             }
         }
 
