@@ -33,11 +33,13 @@ namespace gitw
                 new ToolStripMenuItem("&View Commit", null, ContextMenu_ViewCommit, Keys.Control | Keys.O),
                 new ToolStripMenuItem("&Copy", null, ContextMenu_Copy, Keys.Control | Keys.C),
                 new ToolStripMenuItem("Copy Commit &ID", null, ContextMenu_CopyID, Keys.None),
-                new ToolStripMenuItem("Filter by &Author", null, ContextMenu_FilterByAuthor, Keys.None),
-                new ToolStripMenuItem("Filter &from Date", null, ContextMenu_FilterFromDate, Keys.None),
-                new ToolStripMenuItem("Filter &to Date", null, ContextMenu_FilterToDate, Keys.None),
+                new ToolStripMenuItem("Filter by &Author", null, ContextMenu_FilterByAuthor, Keys.Control | Keys.U),
+                new ToolStripMenuItem("Filter &from Date", null, ContextMenu_FilterFromDate, Keys.Control | Keys.F),
+                new ToolStripMenuItem("Filter &to Date", null, ContextMenu_FilterToDate, Keys.Control | Keys.T),
                 new ToolStripMenuItem("AutoFit Column &Width", null, ContextMenu_AutoFitColumnWidth, Keys.None),
                 new ToolStripMenuItem("Cancel Filter by Author", null, ContextMenu_CancelFilterByAuthor, Keys.Control | Keys.Shift | Keys.U),
+                new ToolStripMenuItem("Cancel Filter from Date", null, ContextMenu_CancelFilterFromDate, Keys.Control | Keys.Shift | Keys.F),
+                new ToolStripMenuItem("Cancel Filter to Date", null, ContextMenu_CancelFilterToDate, Keys.Control | Keys.Shift | Keys.T),
             };
 
             this.ContextMenuStrip.Items.Clear();
@@ -71,6 +73,26 @@ namespace gitw
                 RefreshItems(true);
 
                 this.FilteringByAuthor?.Invoke(this, new FilteringByAuthorEventArgs(null));
+            }
+        }
+
+        public void CancelFilterFromDate()
+        {
+            if (this.owner.CancelFilterFromDate())
+            {
+                RefreshItems(true);
+
+                this.FilteringFromDate?.Invoke(this, new FilteringFromDateEventArgs(null));
+            }
+        }
+
+        public void CancelFilterToDate()
+        {
+            if (this.owner.CancelFilterToDate())
+            {
+                RefreshItems(true);
+
+                this.FilteringToDate?.Invoke(this, new FilteringToDateEventArgs(null));
             }
         }
 
@@ -113,7 +135,9 @@ namespace gitw
             this.contextMenuItems[8].Enabled =
             this.contextMenuItems[9].Enabled =
             this.contextMenuItems[10].Enabled =
-            this.contextMenuItems[11].Enabled = true;
+            this.contextMenuItems[11].Enabled =
+            this.contextMenuItems[12].Enabled =
+            this.contextMenuItems[13].Enabled = true;
 
             foreach (var item in this.contextMenuItems)
             {
@@ -121,6 +145,8 @@ namespace gitw
             }
             // Hide cancel filter menu items
             this.contextMenuItems[11].Visible = false;
+            this.contextMenuItems[12].Visible = false;
+            this.contextMenuItems[13].Visible = false;
         }
 
         private void ContextMenu_DiffCommit(object sender, EventArgs e)
@@ -203,6 +229,16 @@ namespace gitw
         private void ContextMenu_CancelFilterByAuthor(object sender, EventArgs e)
         {
             CancelFilterByAuthor();
+        }
+
+        private void ContextMenu_CancelFilterFromDate(object sender, EventArgs e)
+        {
+            CancelFilterFromDate();
+        }
+
+        private void ContextMenu_CancelFilterToDate(object sender, EventArgs e)
+        {
+            CancelFilterToDate();
         }
 
         private void Lv_DoubleClick(object sender, EventArgs e)

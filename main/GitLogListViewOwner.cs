@@ -130,6 +130,28 @@ namespace gitw
             return true;
         }
 
+        public bool CancelFilterFromDate()
+        {
+            if (this.filterFromDate == null) return false;
+
+            this.filterFromDate = null;
+
+            ResetFiltering();
+
+            return true;
+        }
+
+        public bool CancelFilterToDate()
+        {
+            if (this.filterToDate == null) return false;
+
+            this.filterToDate = null;
+
+            ResetFiltering();
+
+            return true;
+        }
+
         public bool ClearFiltering()
         {
             if (this.matchingItems == null) return false;

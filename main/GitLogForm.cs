@@ -75,7 +75,14 @@ namespace gitw
             this.authorLabel.Click += AuthorLabel_Click;
 
             this.fromDateLabel.Size = new Size(150, 16);
+            this.fromDateLabel.ToolTipText = Constants.FromDateLabelToolTipText;
+            this.fromDateLabel.AutoToolTip = true;
+            this.fromDateLabel.Click += FromDateLabel_Click;
+
             this.toDateLabel.Size = new Size(150, 16);
+            this.toDateLabel.ToolTipText = Constants.ToDateLabelToolTipText;
+            this.toDateLabel.AutoToolTip = true;
+            this.toDateLabel.Click += ToDateLabel_Click;
 
             this.fillerLabel.Spring = true;
 
@@ -165,6 +172,16 @@ namespace gitw
         private void AuthorLabel_Click(object sender, EventArgs e)
         {
             this.listView.CancelFilterByAuthor();
+        }
+
+        private void FromDateLabel_Click(object sender, EventArgs e)
+        {
+            this.listView.CancelFilterFromDate();
+        }
+
+        private void ToDateLabel_Click(object sender, EventArgs e)
+        {
+            this.listView.CancelFilterToDate();
         }
 
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)
