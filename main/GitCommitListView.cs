@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace gitw
@@ -21,6 +22,12 @@ namespace gitw
 
             this.HeaderStyle = ColumnHeaderStyle.None;
 
+            this.OwnerDraw = true;
+            this.Font = new Font(Constants.ListViewFontName, Constants.ListViewOwnerDrawFontSize);
+            this.DrawColumnHeader += GitCommitListView_DrawColumnHeader;
+            this.DrawItem += GitCommitListView_DrawItem;
+            this.DrawSubItem += GitCommitListView_DrawSubItem;
+
             this.contextMenuItems = new ToolStripMenuItem[]
             {
                 new ToolStripMenuItem("&Diff File", null, ContextMenu_DiffFile, Keys.Control | Keys.D),
@@ -41,6 +48,84 @@ namespace gitw
         }
 
         public override int ActualListSize => this.owner.ListSize;
+
+        private bool handlingWmPaint;
+
+        protected override void WndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case Win32Native.WM_PAINT:
+                    // When mouse is hovering over column 0, draw item/subitem
+                    // events will be fired twice and cause flickering.
+                    // Use this flag to avoid redrawing outside of WM_PAINT.
+                    this.handlingWmPaint = true;
+                    base.WndProc(ref m);
+                    this.handlingWmPaint = false;
+                    break;
+                default:
+                    base.WndProc(ref m);
+                    break;
+            }
+        }
+
+        private void GitCommitListView_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
+        {
+            e.DrawDefault = true;
+        }
+
+        private void GitCommitListView_DrawItem(object sender, DrawListViewItemEventArgs e)
+        {
+            if (!this.handlingWmPaint) return;
+
+            e.DrawBackground();
+
+            // e.DrawFocusRectangle() leaves some space in the front which is not
+            // consistent with default focus rectangle.
+            if ((e.State & ListViewItemStates.Focused) != 0)
+            {
+                // Shrink a little bit to look similar to native focus rectangle.
+                var bounds = Rectangle.Inflate(e.Item.Bounds, -1, -1);
+                ControlPaint.DrawFocusRectangle(e.Graphics, bounds, e.Item.ForeColor, e.Item.BackColor);
+            }
+        }
+
+        private void GitCommitListView_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
+        {
+            if (!this.handlingWmPaint) return;
+
+            // Map the ColumnHeader.TextAlign to the TextFormatFlags.
+            HorizontalAlignment hAlign = e.Header?.TextAlign ?? HorizontalAlignment.Left;
+            TextFormatFlags flags =
+                (hAlign == HorizontalAlignment.Left) ? TextFormatFlags.Left :
+                (hAlign == HorizontalAlignment.Center) ? TextFormatFlags.HorizontalCenter :
+                                                         TextFormatFlags.Right;
+            flags |= TextFormatFlags.WordEllipsis | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding;
+
+            string text = (e.ItemIndex == -1) ? e.Item.Text : e.SubItem.Text;
+            Font normalFont = (e.ItemIndex == -1) ? e.Item.Font : e.SubItem.Font;
+            Color normalColor = (e.ItemIndex == -1) ? e.Item.ForeColor : e.SubItem.ForeColor;
+            // Add some padding before drawing text
+            Rectangle newBounds = Rectangle.Inflate(e.Bounds, -6, 0);
+
+            // Highlight hyperlinks
+            Font linkFont = null;
+            foreach (string s in text.ExtractHyperlinks())
+            {
+                if (string.IsNullOrEmpty(s)) continue;
+
+                bool isHyperlink = s.StartsWith("http://") || s.StartsWith("https://") || s.StartsWith("www.");
+                linkFont = (isHyperlink && linkFont == null) ? (new Font(normalFont, FontStyle.Underline)) : linkFont;
+                var font = isHyperlink ? linkFont : normalFont;
+                var color = isHyperlink ? Color.Blue : normalColor;
+                TextRenderer.DrawText(e.Graphics, s, font, newBounds, color, flags);
+
+                var size = new Size(newBounds.Width, newBounds.Height);
+                var textSize = TextRenderer.MeasureText(e.Graphics, s, normalFont, size, flags);
+                newBounds.X += textSize.Width;
+                newBounds.Width -= textSize.Width;
+            }
+        }
 
         private void ContextMenuStrip_Opening(object sender, CancelEventArgs e)
         {

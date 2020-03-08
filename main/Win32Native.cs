@@ -5,6 +5,7 @@ namespace gitw
 {
     public static class Win32Native
     {
+        public const int WM_PAINT = 0x0F;
         public const int WM_CONTEXTMENU = 0x007B;
 
         public const int EM_SETCUEBANNER = 0x1501;

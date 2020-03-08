@@ -13,6 +13,7 @@
 
         public const string ListViewFontName = "Segoe UI";
         public const float ListViewFontSize = 9.375f;
+        public const float ListViewOwnerDrawFontSize = 9.0f;
 
         public const int ListViewTimerInterval = 1000;
     }

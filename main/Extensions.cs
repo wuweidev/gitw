@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using LibGit2Sharp;
@@ -174,6 +175,29 @@ namespace gitw
         public static bool ContainsIgnoreCase(this string s, string value)
         {
             return s.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        // Return string segments with every other one being hyperlink.
+        // The first one is non-hyperlink.
+        private static readonly Regex linkParser = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        public static IEnumerable<string> ExtractHyperlinks(this string s)
+        {
+            if (s == null) yield break;
+
+            int lastMatchEnd = 0;
+            foreach (Match m in linkParser.Matches(s))
+            {
+                if (lastMatchEnd < m.Index)
+                {
+                    yield return s.Substring(lastMatchEnd, m.Index - lastMatchEnd);
+                }
+                yield return m.Value;
+                lastMatchEnd = m.Index + m.Length;
+            }
+            if (lastMatchEnd < s.Length)
+            {
+                yield return s.Substring(lastMatchEnd);
+            }
         }
 
         #endregion
