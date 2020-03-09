@@ -31,6 +31,7 @@ namespace gitw
             this.DrawSubItem += GitCommitListView_DrawSubItem;
 
             this.MouseMove += GitCommitListView_MouseMove;
+            this.MouseClick += GitCommitListView_MouseClick;
 
             this.contextMenuItems = new ToolStripMenuItem[]
             {
@@ -94,6 +95,18 @@ namespace gitw
             }
         }
 
+        private class HyperlinkContext
+        {
+            public Rectangle Bounds { get; set; }
+            public string Link { get; set; }
+
+            public HyperlinkContext(Point location, Size size, string link)
+            {
+                this.Bounds = new Rectangle(location, size);
+                this.Link = link;
+            }
+        }
+
         private void GitCommitListView_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
         {
             if (!this.handlingWmPaint) return;
@@ -114,8 +127,8 @@ namespace gitw
 
             // Highlight hyperlinks
             Font linkFont = null;
-            bool hyperlinkBoundsAlreadyAdded = e.Item.Tag != null;
-            List<Rectangle> hyperlinkBounds = null;
+            bool hyperlinkContextAlreadyAdded = e.Item.Tag != null;
+            List<HyperlinkContext> hyperlinkContexts = null;
             foreach (string s in text.SplitByHyperlinks())
             {
                 if (string.IsNullOrEmpty(s)) continue;
@@ -129,35 +142,48 @@ namespace gitw
                 var textSize = new Size(textBounds.Width, textBounds.Height);
                 textSize = TextRenderer.MeasureText(e.Graphics, s, normalFont, textSize, flags);
 
-                if (isHyperlink && !hyperlinkBoundsAlreadyAdded)
+                if (isHyperlink && !hyperlinkContextAlreadyAdded)
                 {
-                    if (hyperlinkBounds == null)
+                    if (hyperlinkContexts == null)
                     {
-                        hyperlinkBounds = new List<Rectangle>();
+                        hyperlinkContexts = new List<HyperlinkContext>();
                     }
-                    hyperlinkBounds.Add(new Rectangle(textBounds.Location, textSize));
+                    hyperlinkContexts.Add(new HyperlinkContext(textBounds.Location, textSize, s));
                 }
 
                 textBounds.X += textSize.Width;
                 textBounds.Width -= textSize.Width;
             }
-            if (hyperlinkBounds != null)
+            if (hyperlinkContexts != null)
             {
-                e.Item.Tag = hyperlinkBounds;
+                e.Item.Tag = hyperlinkContexts;
+            }
+        }
+
+        private static Cursor s_HandCursor = null;
+        private static Cursor HandCursor
+        {
+            get
+            {
+                if (s_HandCursor == null)
+                {
+                    s_HandCursor = new Cursor(Win32Native.LoadCursor(IntPtr.Zero, Win32Native.IDC_HAND));
+                }
+                return s_HandCursor;
             }
         }
 
         private void GitCommitListView_MouseMove(object sender, MouseEventArgs e)
         {
             var item = this.GetItemAt(e.X, e.Y);
-            var hyperlinkBounds = (List<Rectangle>)item?.Tag;
+            var contexts = (List<HyperlinkContext>)item?.Tag;
             // If hovering over any hyperlink
-            if (hyperlinkBounds != null &&
-                hyperlinkBounds.Any(r => r.Contains(e.Location)))
+            if (contexts != null &&
+                contexts.Any(c => c.Bounds.Contains(e.Location)))
             {
-                if (this.Cursor != Cursors.Hand)
+                if (this.Cursor != HandCursor)
                 {
-                    this.Cursor = Cursors.Hand;
+                    this.Cursor = HandCursor;
                 }
             }
             else
@@ -165,6 +191,24 @@ namespace gitw
                 if (this.Cursor != Cursors.Default)
                 {
                     this.Cursor = Cursors.Default;
+                }
+            }
+        }
+
+        private void GitCommitListView_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && e.Clicks == 1)
+            {
+                var item = this.GetItemAt(e.X, e.Y);
+                var contexts = (List<HyperlinkContext>)item?.Tag;
+                if (contexts != null)
+                {
+                    // If clicking any hyperlink
+                    var context = contexts.FirstOrDefault(c => c.Bounds.Contains(e.Location));
+                    if (context != null)
+                    {
+                        System.Diagnostics.Process.Start(context.Link);
+                    }
                 }
             }
         }

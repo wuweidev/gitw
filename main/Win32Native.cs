@@ -5,7 +5,7 @@ namespace gitw
 {
     public static class Win32Native
     {
-        public const int WM_PAINT = 0x0F;
+        public const int WM_PAINT = 0x000F;
         public const int WM_CONTEXTMENU = 0x007B;
 
         public const int EM_SETCUEBANNER = 0x1501;
@@ -14,14 +14,19 @@ namespace gitw
         public const int LVM_FIRST = 0x1000;
         public const int LVM_GETHEADER = (LVM_FIRST + 31);
 
+        public const int IDC_HAND = 32649;
+
+        [DllImport("user32.dll")]
+        public static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        public static extern IntPtr LoadCursor(IntPtr hInst, int iconId);
+
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern Int32 SendMessage(IntPtr hWnd, int msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
 
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
         public static extern IntPtr SendMessage(IntPtr hwnd, int wMsg, long wParam, long lParam);
-
-        [DllImport("user32.dll")]
-        public static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
 
         [DllImport("uxtheme.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
         public static extern int SetWindowTheme(IntPtr hwnd, string pszSubAppName, string pszSubIdList);
