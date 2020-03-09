@@ -97,8 +97,10 @@ namespace gitw
 
         private class HyperlinkContext
         {
-            public Rectangle Bounds { get; set; }
-            public string Link { get; set; }
+            // Bounds surrounding hyperlink to determine mouse hovering over
+            public Rectangle Bounds { get; }
+            // Link or URL to launch when clicked
+            public string Link { get; }
 
             public HyperlinkContext(Point location, Size size, string link)
             {
@@ -125,7 +127,13 @@ namespace gitw
             // Add some padding before drawing text
             Rectangle textBounds = Rectangle.Inflate(e.Bounds, -6, 0);
 
-            // Highlight hyperlinks
+            // Only check for hyperlinks in commit messages
+            if (!this.owner.IsMessageRow(e.ItemIndex))
+            {
+                TextRenderer.DrawText(e.Graphics, text, normalFont, textBounds, normalColor, flags);
+                return;
+            }
+
             Font linkFont = null;
             bool hyperlinkContextAlreadyAdded = e.Item.Tag != null;
             List<HyperlinkContext> hyperlinkContexts = null;
@@ -133,6 +141,7 @@ namespace gitw
             {
                 if (string.IsNullOrEmpty(s)) continue;
 
+                // Highlight hyperlink
                 bool isHyperlink = s.StartsWith("http://") || s.StartsWith("https://") || s.StartsWith("www.");
                 linkFont = (isHyperlink && linkFont == null) ? (new Font(normalFont, FontStyle.Underline)) : linkFont;
                 var font = isHyperlink ? linkFont : normalFont;
@@ -142,6 +151,7 @@ namespace gitw
                 var textSize = new Size(textBounds.Width, textBounds.Height);
                 textSize = TextRenderer.MeasureText(e.Graphics, s, normalFont, textSize, flags);
 
+                // Add context for hyperlink to help change cursor and launch URL
                 if (isHyperlink && !hyperlinkContextAlreadyAdded)
                 {
                     if (hyperlinkContexts == null)

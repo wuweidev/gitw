@@ -10,7 +10,6 @@ namespace gitw
         // TODO: show hyperlink in commit view
         // TODO: command line to show commit view directly
         // TODO: shift tab not working properly
-        // TODO: check for hyperlinks only for commit messages
 
         public static GitApplicationContext AppContext;
         public static WindowsFormsSynchronizationContext SyncContext;

@@ -21,6 +21,9 @@ namespace gitw
         private readonly List<string> nonBaseFileRows;
         private Task task;
 
+        private int messageBeginInclusive;
+        private int messageEndExclusive;
+
         public GitCommitListViewOwner(GitLog gitLog, Commit commit)
         {
             this.gitLog = gitLog ?? throw new ArgumentNullException(nameof(gitLog));
@@ -91,6 +94,11 @@ namespace gitw
             this.task.Wait();
         }
 
+        public bool IsMessageRow(int row)
+        {
+            return this.messageBeginInclusive <= row && row < this.messageEndExclusive;
+        }
+
         protected override ListViewItem CreateVirtualItem(int index)
         {
             if (0 <= index && index < this.headerRows.Count)
@@ -130,8 +138,12 @@ namespace gitw
                 string.Empty,
             });
 
+            this.messageBeginInclusive = this.headerRows.Count;
+
             this.headerRows.AddRange(
                 Commit.PrettifyMessage(this.commit.Message, '#').Split('\n'));
+
+            this.messageEndExclusive = this.headerRows.Count;
 
             this.headerRows.Add(string.Empty);
             this.headerRows.Add("Affected files ...");
