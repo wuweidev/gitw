@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace gitw
@@ -27,6 +29,8 @@ namespace gitw
             this.DrawColumnHeader += GitCommitListView_DrawColumnHeader;
             this.DrawItem += GitCommitListView_DrawItem;
             this.DrawSubItem += GitCommitListView_DrawSubItem;
+
+            this.MouseMove += GitCommitListView_MouseMove;
 
             this.contextMenuItems = new ToolStripMenuItem[]
             {
@@ -106,11 +110,13 @@ namespace gitw
             Font normalFont = (e.ItemIndex == -1) ? e.Item.Font : e.SubItem.Font;
             Color normalColor = (e.ItemIndex == -1) ? e.Item.ForeColor : e.SubItem.ForeColor;
             // Add some padding before drawing text
-            Rectangle newBounds = Rectangle.Inflate(e.Bounds, -6, 0);
+            Rectangle textBounds = Rectangle.Inflate(e.Bounds, -6, 0);
 
             // Highlight hyperlinks
             Font linkFont = null;
-            foreach (string s in text.ExtractHyperlinks())
+            bool hyperlinkBoundsAlreadyAdded = e.Item.Tag != null;
+            List<Rectangle> hyperlinkBounds = null;
+            foreach (string s in text.SplitByHyperlinks())
             {
                 if (string.IsNullOrEmpty(s)) continue;
 
@@ -118,12 +124,48 @@ namespace gitw
                 linkFont = (isHyperlink && linkFont == null) ? (new Font(normalFont, FontStyle.Underline)) : linkFont;
                 var font = isHyperlink ? linkFont : normalFont;
                 var color = isHyperlink ? Color.Blue : normalColor;
-                TextRenderer.DrawText(e.Graphics, s, font, newBounds, color, flags);
+                TextRenderer.DrawText(e.Graphics, s, font, textBounds, color, flags);
 
-                var size = new Size(newBounds.Width, newBounds.Height);
-                var textSize = TextRenderer.MeasureText(e.Graphics, s, normalFont, size, flags);
-                newBounds.X += textSize.Width;
-                newBounds.Width -= textSize.Width;
+                var textSize = new Size(textBounds.Width, textBounds.Height);
+                textSize = TextRenderer.MeasureText(e.Graphics, s, normalFont, textSize, flags);
+
+                if (isHyperlink && !hyperlinkBoundsAlreadyAdded)
+                {
+                    if (hyperlinkBounds == null)
+                    {
+                        hyperlinkBounds = new List<Rectangle>();
+                    }
+                    hyperlinkBounds.Add(new Rectangle(textBounds.Location, textSize));
+                }
+
+                textBounds.X += textSize.Width;
+                textBounds.Width -= textSize.Width;
+            }
+            if (hyperlinkBounds != null)
+            {
+                e.Item.Tag = hyperlinkBounds;
+            }
+        }
+
+        private void GitCommitListView_MouseMove(object sender, MouseEventArgs e)
+        {
+            var item = this.GetItemAt(e.X, e.Y);
+            var hyperlinkBounds = (List<Rectangle>)item?.Tag;
+            // If hovering over any hyperlink
+            if (hyperlinkBounds != null &&
+                hyperlinkBounds.Any(r => r.Contains(e.Location)))
+            {
+                if (this.Cursor != Cursors.Hand)
+                {
+                    this.Cursor = Cursors.Hand;
+                }
+            }
+            else
+            {
+                if (this.Cursor != Cursors.Default)
+                {
+                    this.Cursor = Cursors.Default;
+                }
             }
         }
 

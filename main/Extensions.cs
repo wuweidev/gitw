@@ -180,7 +180,7 @@ namespace gitw
         // Return string segments with every other one being hyperlink.
         // The first one is non-hyperlink.
         private static readonly Regex linkParser = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        public static IEnumerable<string> ExtractHyperlinks(this string s)
+        public static IEnumerable<string> SplitByHyperlinks(this string s)
         {
             if (s == null) yield break;
 
