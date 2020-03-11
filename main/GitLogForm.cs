@@ -120,6 +120,17 @@ namespace gitw
             PerformLayout();
         }
 
+        protected override bool ProcessTabKey(bool forward)
+        {
+            // Shift tab from search box goes to branch combo box if we don't override this.
+            if (this.ActiveControl == this.searchBox.Control && !forward)
+            {
+                this.listView.Focus();
+                return true;
+            }
+            return base.ProcessTabKey(forward);
+        }
+
         private void BranchComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (this.selectedBranchIndex == this.branchComboBox.SelectedIndex) return;
