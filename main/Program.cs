@@ -7,9 +7,6 @@ namespace gitw
 {
     public static class Program
     {
-        // TODO: show hyperlink in commit view
-        // TODO: command line to show commit view directly
-
         public static GitApplicationContext AppContext;
         public static WindowsFormsSynchronizationContext SyncContext;
 
@@ -46,12 +43,34 @@ namespace gitw
 
             using (var repo = new Repository(repoRoot))
             {
-                var form = new GitLogForm(repo, fullPath);
+                Form form;
+                var commit = TryLookupCommit(repo, fullPath, args[0]);
+                if (commit != null)
+                {
+                    fullPath = Environment.CurrentDirectory;
+                    if (!fullPath.EndsWith("\\"))
+                    {
+                        fullPath += "\\";
+                    }
+
+                    var gitLog = new GitLog(repo, fullPath, Constants.MaxCommits);
+                    form = new GitCommitForm(gitLog, commit);
+                }
+                else
+                {
+                    form = new GitLogForm(repo, fullPath);
+                }
 
                 AppContext.NewForm(form);
 
                 Application.Run(AppContext);
             }
+        }
+
+        static Commit TryLookupCommit(Repository repo, string fullPath, string commitish)
+        {
+            return File.Exists(fullPath) || Directory.Exists(fullPath) ?
+                null : repo.Lookup<Commit>(commitish);
         }
     }
 }
