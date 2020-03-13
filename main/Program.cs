@@ -22,8 +22,8 @@ namespace gitw
             AppContext = new GitApplicationContext();
             SyncContext = new WindowsFormsSynchronizationContext();
 
-            string path = args.Length > 0 ? args[0] : null;
-            string fullPath = path == null ? Environment.CurrentDirectory : Path.GetFullPath(path);
+            string pathOrCommitish = args.Length > 0 ? args[0] : null;
+            string fullPath = pathOrCommitish == null ? Environment.CurrentDirectory : Path.GetFullPath(pathOrCommitish);
 
             if (Directory.Exists(fullPath) && !fullPath.EndsWith("\\"))
             {
@@ -44,7 +44,7 @@ namespace gitw
             using (var repo = new Repository(repoRoot))
             {
                 Form form;
-                var commit = TryLookupCommit(repo, fullPath, args[0]);
+                var commit = TryLookupCommit(repo, fullPath, pathOrCommitish);
                 if (commit != null)
                 {
                     fullPath = Environment.CurrentDirectory;
@@ -69,7 +69,7 @@ namespace gitw
 
         static Commit TryLookupCommit(Repository repo, string fullPath, string commitish)
         {
-            return File.Exists(fullPath) || Directory.Exists(fullPath) ?
+            return commitish == null || File.Exists(fullPath) || Directory.Exists(fullPath) ?
                 null : repo.Lookup<Commit>(commitish);
         }
     }
