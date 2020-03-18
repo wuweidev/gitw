@@ -108,9 +108,9 @@ namespace gitw
             }
         }
 
-        public void SelectBranch(string branchName)
+        public void SelectBranch(int branchIndex)
         {
-            if (this.owner.SelectBranch(branchName))
+            if (this.owner.SelectBranch(branchIndex))
             {
                 RefreshItems(true);
             }

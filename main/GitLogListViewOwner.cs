@@ -166,9 +166,9 @@ namespace gitw
             return true;
         }
 
-        public bool SelectBranch(string branchName)
+        public bool SelectBranch(int branchIndex)
         {
-            if (!this.gitLog.SelectBranch(branchName)) return false;
+            if (!this.gitLog.SelectBranch(branchIndex)) return false;
 
             CancelAndStartNewFilteringTask(true);
 

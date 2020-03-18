@@ -14,7 +14,9 @@ namespace gitw
         private Repository repo;
         private string targetPath;
         private readonly int count;
-        private Branch currentBranch;
+        private List<Branch> branches;
+        private int currentBranchIndex;
+        private bool headDeteched;
         private string diffCmd;
         private string diffExe;
         private string diffArguments;
@@ -28,7 +30,23 @@ namespace gitw
             this.repo = repo ?? throw new ArgumentNullException(nameof(repo));
             this.targetPath = path ?? throw new ArgumentNullException(nameof(path));
             this.count = count > 0 ? count : throw new ArgumentOutOfRangeException(nameof(count));
-            this.currentBranch = repo.Branches.First(b => b.IsCurrentRepositoryHead);
+
+            this.branches = repo.Branches.Where(b => !b.IsRemote).ToList();
+            this.headDeteched = true;
+            for (int i = 0; i < this.branches.Count; ++i)
+            {
+                if (this.branches[i].IsCurrentRepositoryHead)
+                {
+                    this.currentBranchIndex = i;
+                    this.headDeteched = false;
+                    break;
+                }
+            }
+            if (this.headDeteched)
+            {
+                this.branches.Insert(0, repo.Head);
+                this.currentBranchIndex = 0;
+            }
 
             Debug.Assert(this.targetPath.StartsWith(this.repo.Info.WorkingDirectory, StringComparison.OrdinalIgnoreCase));
             this.targetPath = this.targetPath.Substring(this.repo.Info.WorkingDirectory.Length);
@@ -61,28 +79,34 @@ namespace gitw
 
         public string[] GetLocalBranchNames(out int currentBranchIndex)
         {
-            var localBranches = this.repo.Branches.Where(b => !b.IsRemote);
-            int i = 0;
-            currentBranchIndex = -1;
+            currentBranchIndex = this.currentBranchIndex;
 
-            foreach (var lb in localBranches)
+            var branchNames = new List<string>();
+            for (int i = 0; i < this.branches.Count; ++i)
             {
-                if (lb.IsCurrentRepositoryHead)
+                if (i == 0 && this.headDeteched)
                 {
-                    currentBranchIndex = i;
-                    break;
+                    branchNames.Add(Constants.DetachedHeadBranchName);
                 }
-                ++i;
+                else
+                {
+                    branchNames.Add(this.branches[i].FriendlyName);
+                }
             }
 
-            return localBranches.Select(b => b.FriendlyName).ToArray();
+            return branchNames.ToArray();
         }
 
-        public bool SelectBranch(string branchName)
+        public bool SelectBranch(int branchIndex)
         {
-            if (branchName == null || branchName == this.currentBranch.FriendlyName) return false;
+            if (branchIndex < 0 || branchIndex >= this.branches.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(branchIndex));
+            }
 
-            this.currentBranch = this.repo.Branches[branchName];
+            if (branchIndex == this.currentBranchIndex) return false;
+
+            this.currentBranchIndex = branchIndex;
             this.cachedCommits = null;
             return true;
         }
@@ -189,7 +213,7 @@ namespace gitw
 
             if (this.targetPath.Length == 0)
             {
-                return this.currentBranch.Commits.Where(c => CommitHasOneParent(c)).Take(count);
+                return this.branches[this.currentBranchIndex].Commits.Where(c => CommitHasOneParent(c)).Take(count);
             }
             else
             {
@@ -203,7 +227,7 @@ namespace gitw
                     //FirstParentOnly = true,
                 };
 
-                return this.currentBranch.Commits.Where(c => CommitHasOneParent(c) && CommitTouchedPath(c, segments)).Take(count);
+                return this.branches[this.currentBranchIndex].Commits.Where(c => CommitHasOneParent(c) && CommitTouchedPath(c, segments)).Take(count);
             }
         }
 

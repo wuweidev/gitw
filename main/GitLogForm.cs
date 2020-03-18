@@ -136,7 +136,7 @@ namespace gitw
             if (this.selectedBranchIndex == this.branchComboBox.SelectedIndex) return;
 
             this.selectedBranchIndex = this.branchComboBox.SelectedIndex;
-            this.listView.SelectBranch(this.branchComboBox.SelectedItem as string);
+            this.listView.SelectBranch(this.selectedBranchIndex);
         }
 
         private void GitLogForm_KeyDown(object sender, KeyEventArgs e)

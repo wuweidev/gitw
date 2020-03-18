@@ -16,5 +16,7 @@
         public const float ListViewOwnerDrawFontSize = 9.0f;
 
         public const int ListViewTimerInterval = 1000;
+
+        public const string DetachedHeadBranchName = "(Detached HEAD)";
     }
 }
