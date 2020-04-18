@@ -69,8 +69,15 @@ namespace gitw
 
         static Commit TryLookupCommit(Repository repo, string fullPath, string commitish)
         {
-            return commitish == null || File.Exists(fullPath) || Directory.Exists(fullPath) ?
-                null : repo.Lookup<Commit>(commitish);
+            try
+            {
+                return commitish == null || File.Exists(fullPath) || Directory.Exists(fullPath) ?
+                    null : repo.Lookup<Commit>(commitish);
+            }
+            catch (InvalidSpecificationException)
+            {
+                return null;
+            }
         }
     }
 }
