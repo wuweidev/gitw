@@ -86,7 +86,7 @@ namespace gitw
 
             this.fillerLabel.Spring = true;
 
-            this.branchComboBox.Size = new Size(180, 16);
+            this.branchComboBox.Size = new Size(240, 16);
             this.branchComboBox.AutoSize = true;
             this.branchComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             this.branchComboBox.FlatStyle = FlatStyle.Standard;
