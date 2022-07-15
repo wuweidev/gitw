@@ -177,10 +177,26 @@ namespace gitw
 
         private void ParseDiffTool()
         {
-            string difftool = repo.Config.Get<string>("diff.tool")?.Value;
+            string difftool = repo.Config.Get<string>("diff.guitool")?.Value ??
+                              repo.Config.Get<string>("diff.tool")?.Value;
             if (difftool != null)
             {
                 this.diffCmd = repo.Config.Get<string>($"difftool.{difftool}.cmd")?.Value;
+
+                // Git has a list of supported diff tools with known command line, defined in the
+                // mergetools folder under the git source root. For example, winmerge is
+                // invoked like: "$merge_tool_path" -u -e "$LOCAL" "$REMOTE"
+                // For simplicity we just use the most common command line for all such tools,
+                // i.e. "$merge_tool_path" "$LOCAL" "$REMOTE"
+                if (this.diffCmd == null)
+                {
+                    string path = repo.Config.Get<string>($"difftool.{difftool}.path")?.Value;
+                    if (path != null)
+                    {
+                        this.diffCmd = string.Format($"\"{path}\" \"$LOCAL\" \"$REMOTE\"");
+                    }
+                }
+
                 if (this.diffCmd != null)
                 {
                     string cmd = this.diffCmd.Trim();
