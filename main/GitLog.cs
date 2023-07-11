@@ -149,7 +149,7 @@ namespace gitw
                 // patch entries and compare old path as well.
                 foreach (var pe in patch)
                 {
-                    if (fileRelPath == pe.Path || fileRelPath == pe.OldPath)
+                    if (fileRelPath.PathEquals(pe.Path) || fileRelPath.PathEquals(pe.OldPath))
                     {
                         this.repo.CopyBlobToPath(pe.Oid, Path.Combine(croot, pe.Path));
                         this.repo.CopyBlobToPath(pe.OldOid, Path.Combine(proot, pe.Path));

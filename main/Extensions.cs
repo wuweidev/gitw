@@ -200,6 +200,12 @@ namespace gitw
             }
         }
 
+        public static bool PathEquals(this string path, string target)
+        {
+            // This will handle paths that use '/' as separator.
+            return Path.GetFullPath(path) == Path.GetFullPath(target);
+        }
+
         #endregion
     }
 }
