@@ -110,7 +110,7 @@ namespace gitw
                 commit.Sha,
                 commit.Author.When.ToLocalTimeString(),
                 commit.Author.ToString(),
-                commit.MessageShort,
+                commit.Message,
             };
         }
 
